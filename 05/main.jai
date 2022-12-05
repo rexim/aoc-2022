@@ -3,10 +3,6 @@
 #import "String";
 #load "data.jai";
 
-append_string :: (stack: *[..]int, s: string) {
-    for 0..s.count-1 array_add(stack, s[it]);
-}
-
 make_state :: (rows: []string) -> [][..]u8 {
     result : [..][..]u8;
     for row: rows {
