@@ -102,7 +102,6 @@ solve :: ($N: int, part: int, file_path: string) {
 }
 
 main :: () {
-    lengths :: int.[2, 10];
     solve(2, 1, "sample.txt");
     solve(2, 1, "sample2.txt");
     solve(2, 1, "input.txt");
