@@ -94,7 +94,7 @@ solve :: ($N: int, part: int, file_path: string) {
     for motion: motions {
         for 0..motion.length-1 {
             rope[0] += directions[motion.direction];
-            for 1..N-1 adjust_tail(rope[it-1], *rope[it]);
+            for 0..N-2 adjust_tail(rope[it], *rope[it+1]);
             array_add(*trace, rope[N-1]);
         }
     }
