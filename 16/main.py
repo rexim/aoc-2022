@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-def part1(file_path):
-    content = open(file_path, "rb").read()
-
+def parse_valves(content):
     valves = {}
     for line in content.splitlines():
         if len(line) > 0:
@@ -15,9 +13,10 @@ def part1(file_path):
             valves[name] = {
                 "rate": rate,
                 "neighbors": neighbors,
-                "opened": False,
             }
+    return valves
 
+def distance_map(valves):
     def bfs(start):
         distances = {start: 0}
         wave = [start]
@@ -30,42 +29,40 @@ def part1(file_path):
                         new_wave.append(neighbor)
             wave = new_wave
         return distances
+    return {name: bfs(name) for name, valve in valves.items() if valve["rate"] > 0 or name == b"AA"}
 
-    distance = {name: bfs(name) for name, valve in valves.items() if valve["rate"] > 0 or name == b"AA"}
+def rate(valves, opened):
+    result = 0
+    for name, valve in valves.items():
+        if name in opened:
+            result += valve["rate"]
+    return result
 
+def part1(file_path):
+    content = open(file_path, "rb").read()
+    valves = parse_valves(content)
+    distance = distance_map(valves)
     TIME_LIMIT = 30
+    def bruteforce(here, opened, released = []):
+        if len(released) >= TIME_LIMIT:
+            return sum(released[0:TIME_LIMIT])
 
-    def rate():
-        result = 0
-        for v in valves.values():
-            if v["opened"]:
-                result += v["rate"]
-        return result
-
-    def bruteforce(stack, minutes = 0, released = 0):
-        # print(minutes, released, stack)
-        assert minutes <= 30
-        max_released = released
-        here = stack[-1]
-        if minutes < TIME_LIMIT:
-            all_open = True
-            r = rate()
-            for there in distance:
-                if not valves[there]["opened"]:
-                    all_open = False
-                    d = distance[here][there]
-                    if minutes + d + 1 <= TIME_LIMIT:
-                        valves[there]["opened"] = True;
-                        max_released = max(max_released, bruteforce(stack + [there], minutes + d + 1, released + (d + 1)*r));
-                        valves[there]["opened"] = False;
-                    else:
-                        max_released = max(max_released, released + (TIME_LIMIT - minutes)*r)
-            if all_open:
-                max_released = max(max_released, released + (TIME_LIMIT - minutes)*r)
-        return max_released
-
-    valves[b"AA"]["opened"] = True
-    print("Part 1", file_path, bruteforce([b"AA"]))
+        r = rate(valves, opened)
+        max_released = 0
+        all_open = True
+        for there in distance:
+            if there not in opened:
+                all_open = False
+                d = distance[here][there]
+                max_released = max(
+                    max_released,
+                    bruteforce(there, opened.union({there}), released + [r]*(d + 1))
+                )
+        if all_open:
+            return bruteforce(here, opened, released + [r]*(TIME_LIMIT - len(released)))
+        else:
+            return max_released
+    print("Part 1", file_path, bruteforce(b"AA", {b"AA"}))
 
 part1("sample.txt")
 part1("input.txt")
